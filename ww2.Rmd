@@ -1,0 +1,108 @@
+---
+title: World War II
+author: Dimitri Lozeve
+output:	html_document
+fig_height: 7
+fig_width: 8
+---
+
+
+## Libraries
+
+```{r}
+library(tidyverse)
+library(lubridate)
+```
+
+Package `lubridate` is used for date and time management.
+
+
+## Data import
+
+I used the column types from data.world. I also parse the "Mission
+date" column using `lubridate`.
+
+```{r results="hide"}
+bombings <- read_csv("THOR_WWII_DATA_CLEAN.csv",col_types="iicccccccciicccddccccccddddcdddcdddccdddccddcccdcccccccccccccc")
+bombings$MSNDATE <- mdy(bombings$MSNDATE)
+glimpse(bombings)
+```
+
+## Total tons of explosive by country
+
+List of all countries targeted during WWII by the US:
+
+```{r}
+levels(as.factor(bombings$TGT_COUNTRY))
+```
+
+To plot the total amount of explosives dropped on each country, I
+build a new table, which I sort and fix the order using factors.
+
+```{r}
+sum_by_country <- bombings %>% group_by(TGT_COUNTRY) %>% summarise(TOTAL_TONS= sum(TOTAL_TONS, na.rm=TRUE))
+
+sum_by_country <- sum_by_country[order(sum_by_country$TOTAL_TONS, decreasing=TRUE),]
+sum_by_country$TGT_COUNTRY <- factor(sum_by_country$TGT_COUNTRY, levels = sum_by_country$TGT_COUNTRY)
+sum_by_country
+```
+
+I then plot a bar plot for the first 10 countries:
+
+```{r}
+ggplot(top_n(sum_by_country, 10, TOTAL_TONS), aes(x=TGT_COUNTRY, y=TOTAL_TONS)) +
+    geom_bar(stat="identity") +
+    #scale_y_log10() + ## for a log plot
+    theme(axis.text.x = element_text(angle = 50, hjust = 1))
+```
+
+## Total tons of explosive by month
+
+In the same manner as before, I build a new table with a column for the month.
+
+```{r}
+sum_by_month <- bombings %>% select(MSNDATE, TOTAL_TONS)
+sum_by_month$MONTH <- ymd(format(bombings$MSNDATE, "%Y-%m-1"))
+```
+
+```{r}
+ggplot(sum_by_month, aes(x=MONTH, y=TOTAL_TONS)) +
+    stat_summary(fun.y=sum, geom="bar") +
+    scale_x_date(date_labels="%Y", date_breaks="1 year", date_minor_breaks="1 month")
+```
+
+## Map of bombings in Europe
+
+```{r}
+bombings_locations<- bombings %>%
+    group_by(LONGITUDE, LATITUDE) %>%
+    summarise(TOTAL_TONS = sum(TOTAL_TONS))
+
+bombings_locations <- na.omit(bombings_locations)
+#bombings_locations <- left_join(bombings_locations, select(bombings, LONGITUDE, LATITUDE, TGT_LOCATION), by=c("LONGITUDE", "LATITUDE"))
+```
+
+```{r}
+library(leaflet)
+```
+
+```{r fig.height=7, fig.width=10 }
+m <- leaflet(na.omit(bombings_locations)) %>%
+    setView(lng = 20, lat = 20, zoom = 3) %>%
+    addTiles(group = "OpenStreetMap") %>%
+    addProviderTiles("Stamen.Toner", group = "Toner") %>%
+    addProviderTiles("Stamen.TonerLite", group = "TonerLite") %>%
+    addProviderTiles("Esri.WorldTopoMap", group = "Topographical") %>%
+    addProviderTiles("Esri.NatGeoWorldMap", group = "NatGeo") %>%
+    addProviderTiles("Esri.WorldImagery", group = "Satellite") %>%
+    addCircles(lng = ~LONGITUDE, lat = ~LATITUDE,
+               radius = ~sqrt(TOTAL_TONS) * 200,
+               fillColor = "red", color = "red",
+               group = "World War II") %>%
+    addLayersControl(
+        baseGroups = c("OpenStreetMap", "Toner", "TonerLite", "Topographical", "NatGeo", "Satellite"),
+        overlayGroups = c("World War II"),
+        options = layersControlOptions(collapsed = FALSE)) %>%
+    showGroup("TonerLite")
+m
+```

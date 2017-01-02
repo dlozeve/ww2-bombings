@@ -1,6 +1,8 @@
 var grayscale = L.tileLayer('https://api.mapbox.com/styles/v1/deltux/cix9hxd7600az2pohc8aebhn1/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiZGVsdHV4IiwiYSI6ImNpdzB4dHhqcDAwMXoyb280c3VyZjVpZmYifQ.8A9IxhBEga9lI1h2zUDSgg');
 var streets = L.tileLayer('https://api.mapbox.com/styles/v1/deltux/cix9hq0il00f42qo9ru2lvi10/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiZGVsdHV4IiwiYSI6ImNpdzB4dHhqcDAwMXoyb280c3VyZjVpZmYifQ.8A9IxhBEga9lI1h2zUDSgg');
 var satellite = L.tileLayer('https://api.mapbox.com/styles/v1/deltux/cixbspsw000i62pnwypfx86p0/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiZGVsdHV4IiwiYSI6ImNpdzB4dHhqcDAwMXoyb280c3VyZjVpZmYifQ.8A9IxhBEga9lI1h2zUDSgg');
+var osm = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+
 
 var geojsonMarkerOptions = {
     // radius: 6,
@@ -33,12 +35,13 @@ var geojson = L.geoJSON(bombings, {
 var map = L.map('map', {
     center: [48.68, 4.9],
     zoom: 7,
-    layers: [grayscale, geojson]});
+    layers: [osm, geojson]});
 
 var baseMaps = {
-    "Grayscale": grayscale,
-    "Streets": streets,
-    "Satellite": satellite
+    // "Grayscale": grayscale,
+    // "Streets": streets,
+    // "Satellite": satellite,
+    "OSM": osm
 };
 
 var overlayMaps = {

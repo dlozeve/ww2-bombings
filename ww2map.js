@@ -34,6 +34,16 @@ var map = L.map('map', {
     zoom: 7,
     layers: [osm, geojson]});
 
+var legend = L.control({position: 'bottomright'});
+
+legend.onAdd = function (map) {
+    var div = L.DomUtil.create('div', 'info legend');
+    div.innerHTML += '<b style="font-size: 25px">Circle sizes: tons of explosive dropped</b>';
+    return div;
+};
+
+legend.addTo(map);
+
 var baseMaps = {
     "OSM": osm
 };

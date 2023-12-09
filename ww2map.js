@@ -57,3 +57,4 @@ L.control.layers(baseMaps, overlayMaps, {
 }).addTo(map);
 		
 L.control.scale().addTo(map);
+L.control.BigImage({position: 'topright', printControlLabel: '🖨'}).addTo(map);
